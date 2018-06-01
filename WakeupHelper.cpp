@@ -27,6 +27,9 @@ int WakeupHelper::configureDevices(QVariantMap &args)
 //     QString usbDisabled;
 //     
     
+    QStringList acpiEnabled(args["ACPIEnabled"]);
+    QStringList acpiDisabled(args["ACPIDisabled"]);
+    
     qWarning() << "Reading ACPI file";
     QFile file("/proc/acpi/wakeup");
     file.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -47,12 +50,31 @@ int WakeupHelper::configureDevices(QVariantMap &args)
         if ((pos = rx.indexIn(line, 0)) != -1) {
             qDebug() << "Entry: " << rx.cap(1) << ", State " << rx.cap(2) << " " << rx.cap(3)
                     << " " << rx.cap(4);
-            if(rx.cap(1))
+            if(acpiEnabled.contains(rx.cap(1)) && rx.cap(3) == "enabled")
+                acpiEnabled.removeAll(rx.cap(1));
+            if(acpiDisabled.contains(rx.cap(1)) && rx.cap(3) == "disabled")
+                acpiDisabled.removeAll(rx.cap(1));
         } else {
             qDebug() << "No match!"; 
         }
         
     } while (1);
+    
+    file.close();
+    
+    qDebug() << "Updating /proc/acpi/wakeup";
+    
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    
+    for (int i = 0; i < acpiEnabled.size(); ++i) {
+        file.write(acpiEnabled.at(i).toLocal8Bit());
+    }
+    
+    for (int i = 0; i < acpiDisabled.size(); ++i) {
+        file.write(acpiDisabled.at(i).toLocal8Bit());
+    }
+    
+    file.close();
     
     return 0;
 }

@@ -1,3 +1,5 @@
+mkdir build
+cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=/home/birger/c++/wakeupmanager/run
 make install
 export XDG_DATA_DIRS=$HOME/c++/wakeupmanager/run/share:$XDG_DATA_DIRS
