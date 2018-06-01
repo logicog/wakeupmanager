@@ -1,0 +1,11 @@
+[org.kde.wakeupmanager.updateconfig]
+Name=Save Wakeup Settings
+Description=Saves the settings for the Wakeup Manager
+Policy=auth_admin
+Persistence=session
+
+[org.kde.wakeupmanager.toggleacpiwakeup]
+Name=Toggles a wakeup setting in ACPI 
+Description=Wakeup Manager action for toggling an action in the ACPI settings
+Policy=auth_admin
+Persistence=session
