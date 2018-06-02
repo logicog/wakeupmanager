@@ -25,6 +25,9 @@ int WakeupHelper::configureDevices(const QVariantMap &args)
     QStringList acpiEnabled(args["ACPIEnabled"].toStringList());
     QStringList acpiDisabled(args["ACPIDisabled"].toStringList());
     
+    QStringList usbEnabled(args["USBEnabled"].toStringList());
+    QStringList usbDisabled(args["USBDisabled"].toStringList());
+    
     // First we read the acpi wakeup configuration under proc
     // to see which settings are already set, in order to only toggle the others
     
@@ -83,6 +86,38 @@ int WakeupHelper::configureDevices(const QVariantMap &args)
     
     file.close();
     
+    // Now we set the entries for the USB devices
+       
+    for (int i = 0; i < usbEnabled.size(); ++i) {
+        qDebug() << "Opening file " << usbEnabled.at(i).toLocal8Bit() << "/power/wakeup";
+        file.setFileName(usbEnabled.at(i) + "/power/wakeup");
+        if(file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            qDebug() << "Enabling";
+            if(file.write("enabled") != 7) {
+                file.close();
+                return 3;
+            }
+            file.close();
+        } else {
+            return 4;
+        }
+    }
+    
+    for (int i = 0; i < usbDisabled.size(); ++i) {
+        qDebug() << "Opening file " << usbDisabled.at(i) << "/power/wakeup";
+        file.setFileName(usbDisabled.at(i).toLocal8Bit() + "/power/wakeup");
+        if(file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            qDebug() << "Disabling";
+            if(file.write("disabled") != 8) {
+                file.close();
+                return 3;
+            }
+            file.close();
+        } else {
+            return 4;
+        }
+    }
+    
     return 0;
 }
 
@@ -112,6 +147,14 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
         case 2:
             reply = ActionReply::HelperErrorReply();
             reply.setErrorDescription("Could not write to /proc/acpi/wakeup.");
+            return reply;
+        case 3:
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not write to usb sysfs file.");
+            return reply;
+        case 4:
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not open usb sysfs file");
             return reply;
     }
      

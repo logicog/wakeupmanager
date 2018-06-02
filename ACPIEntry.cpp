@@ -147,9 +147,10 @@ QStringList ACPIEntry::changedUSBEntries(bool enabled)
         if(usbEntries.at(i)->getCheckBox()->isChecked() == usbEntries.at(i)->isEnabled())
             continue;
 
-        if(usbEntries.at(i)->isEnabled() != enabled)
+        if(usbEntries.at(i)->getCheckBox()->isChecked() != enabled)
             continue;
 
+        qDebug() << "Adding " << usbEntries.at(i)->getUSBDevNumber() << "as enabled: " << enabled;
         e.push_back(usbEntries.at(i)->getUSBDevNumber());
     }
     
@@ -159,7 +160,7 @@ QStringList ACPIEntry::changedUSBEntries(bool enabled)
 
 bool ACPIEntry::canWake()
 {
-    // XXXXXXXXXXXX Ethernet controllers, Lids, power button and so on
+    // TODO: Ethernet controllers, Lids, power button and so on
     
     if(usbEntries.size())
         return true;
