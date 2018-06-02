@@ -127,21 +127,46 @@ int WakeupHelper::configureDevices(const QVariantMap &args)
 
 ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
 {
+    QVariantMap vm(args);
+    
     ActionReply reply;
     
+    QVariantMap old = readConfig();
+
+    for(auto e: old.keys() ) {
+        for(int i=0; i<old.value(e).toStringList().size(); i++)  {
+            QString s=old.value(e).toStringList().at(i);
+            qDebug() << "Searching for origial entry" << e << ": " << s;
+            bool found = false;
+            for(auto en: vm.keys()) {
+                if(vm.value(en).toStringList().indexOf(s)>=0) {
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                qDebug() << "NOT Found: "<< e << ": " << s;
+                QStringList sl = vm.value(e).toStringList();
+                sl.push_back(s);
+                vm[e] = sl;
+            } else {
+                qDebug() << "Found: "<< e << ": " << s;
+            }
+        }
+    }     
     
     KSharedConfigPtr configPtr = KSharedConfig::openConfig(CONFIGFILE,KConfig::SimpleConfig);
     
     
     KConfigGroup group(configPtr->group("Wakeup"));
-    for(auto e : args.keys()) {
-        qDebug() << e << "," << args.value(e) << '\n';
-        group.writeEntry(e, args.value(e));
+    for(auto e : vm.keys()) {
+        qDebug() << e << "," << vm.value(e) << '\n';
+        group.writeEntry(e, vm.value(e));
     }
     
     configPtr->sync();
     
-    int ret = configureDevices(args);
+    int ret = configureDevices(vm);
     switch(ret) {
         case 1:
             reply = ActionReply::HelperErrorReply();
