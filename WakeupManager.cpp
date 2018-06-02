@@ -145,11 +145,11 @@ void WakeupManager::handleApplyButton()
     args["USBDisabled"] = usbDisabled;
     
     qDebug() << "Creating action!";
-    KAuth::Action toggleACPIAction(QStringLiteral("org.kde.wakeupmanager.updateconfig"));
-    toggleACPIAction.setHelperId("org.kde.wakeupmanager");
-    toggleACPIAction.setArguments(args);
+    KAuth::Action updateConfigAction(QStringLiteral("org.kde.wakeupmanager.updateconfig"));
+    updateConfigAction.setHelperId("org.kde.wakeupmanager");
+    updateConfigAction.setArguments(args);
     qDebug() << "Executing job.";
-    ExecuteJob *job = toggleACPIAction.execute();
+    ExecuteJob *job = updateConfigAction.execute();
     if (!job->exec()) {
        qDebug() << "KAuth returned an error code:" << job->error() << ": " << job->errorString();
     } else {
@@ -161,17 +161,17 @@ void WakeupManager::handleApplyButton()
 
 void WakeupManager::handleResetButton()
 {
-    qDebug() << "Reset pressed!";
+    qDebug() << "Reset pressed!: " << "Appying config";
     
     QVariantMap args;
     args["entry"] = "XHC0";
     
     qDebug() << "Creating action!";
-    KAuth::Action toggleACPIAction(QStringLiteral("org.kde.wakeupmanager.toggleacpiwakeup"));
-    toggleACPIAction.setHelperId("org.kde.wakeupmanager");
-    toggleACPIAction.setArguments(args);
+    KAuth::Action applyConfigAction(QStringLiteral("org.kde.wakeupmanager.applyconfig"));
+    applyConfigAction.setHelperId("org.kde.wakeupmanager");
+    applyConfigAction.setArguments(args);
     qDebug() << "Executing job.";
-    ExecuteJob *job = toggleACPIAction.execute();
+    ExecuteJob *job = applyConfigAction.execute();
     if (!job->exec()) {
        qDebug() << "KAuth returned an error code:" << job->error() << ": " << job->errorString();
     } else {

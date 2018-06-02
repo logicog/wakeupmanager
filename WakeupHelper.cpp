@@ -14,9 +14,12 @@ class WakeupHelper : public QObject
     public:
         int configureDevices(const QVariantMap &args);
     
+    private:
+        QVariantMap readConfig();
+        
     public Q_SLOTS:
         ActionReply updateconfig(const QVariantMap& args);
-        ActionReply toggleacpiwakeup(const QVariantMap& args);
+        ActionReply applyconfig(const QVariantMap& args);
 };
 
 
@@ -164,27 +167,58 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
 }
 
 
-ActionReply WakeupHelper::toggleacpiwakeup(const QVariantMap& args)
+QVariantMap WakeupHelper::readConfig()
 {
-    ActionReply reply;
-    QString entry = args["entry"].toString();
+    KSharedConfigPtr configPtr = KSharedConfig::openConfig(CONFIGFILE,KConfig::SimpleConfig);
     
-    QFile file("/proc/acpi/wakeup");
+    KConfigGroup group(configPtr->group("Wakeup"));
+ 
+    QStringList acpiEnabled = group.readXdgListEntry("ACPIEnabled");
+    QStringList acpiDisabled = group.readXdgListEntry("ACPIDisabled");
+    QStringList usbEnabled = group.readXdgListEntry("USBEnabled");
+    QStringList usbDisabled = group.readXdgListEntry("USBDisabled");
     
-    if (!file.open(QIODevice::WriteOnly)) {
-       reply = ActionReply::HelperErrorReply();
-       reply.setErrorDescription(file.errorString());
-       return reply;
-    }
+    QVariantMap m;
+    m["ACPIEnabled"] = acpiEnabled;
+    m["ACPIDisabled"] = acpiDisabled;
+    m["USBEnabled"] = usbEnabled;
+    m["USBDisabled"] = usbDisabled;
     
-    if(file.write(entry.toUtf8()) != entry.size()) {
-       reply = ActionReply::HelperErrorReply();
-       reply.setErrorDescription(file.errorString());
-       return reply;
-    }
+ //   configPtr->close();
+    
+    return m;
+}
 
-    file.close();
-    reply = ActionReply::SuccessReply();
+
+ActionReply WakeupHelper::applyconfig(const QVariantMap& args)
+{
+    Q_UNUSED( args )
+
+    ActionReply reply;
+    
+    QVariantMap config = readConfig();
+    
+    int ret = configureDevices(config);
+    switch(ret) {
+        case 1:
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not open acpi settings file: /proc/acpi/wakeup");
+            return reply;
+        case 2:
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not write to /proc/acpi/wakeup.");
+            return reply;
+        case 3:
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not write to usb sysfs file.");
+            return reply;
+        case 4:
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not open usb sysfs file");
+            return reply;
+    }
+     
+    reply.addData("result", "OK");
 
     return reply;
 }
