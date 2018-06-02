@@ -20,6 +20,7 @@ public:
     bool            isEnabled() { return enabled; };
     QString         getName() { return entry; }; 
     QStringList     changedUSBEntries(bool enabled);
+    void            resetUSBEntries();
 
 private:
     int                 readPCIDeviceClass();

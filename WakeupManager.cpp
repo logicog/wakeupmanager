@@ -23,6 +23,8 @@ WakeupManager::WakeupManager(QWidget *parent) : KXmlGuiWindow(parent)
     qDebug() << "Acting..";
     readACPI();
     
+    testButton = new QPushButton("Test");
+    firstLevelLayout->addWidget(testButton);
     resetButton = new QPushButton("Reset");
     firstLevelLayout->addWidget(resetButton);
     applyButton = new QPushButton("Apply");
@@ -95,6 +97,7 @@ void WakeupManager::setupActions()
     KStandardAction::quit(qApp, SLOT(quit()), actionCollection());
     connect(resetButton, SIGNAL (released()), this, SLOT (handleResetButton()));
     connect(applyButton, SIGNAL (released()), this, SLOT (handleApplyButton()));
+    connect(testButton, SIGNAL (released()), this, SLOT (handleTestButton()));
     
     setupGUI(Default, "wakeupmanagerui.rc");
 }
@@ -128,8 +131,6 @@ void WakeupManager::handleApplyButton()
         if(acpiEntries.at(i)->getCheckBox()->isChecked() ) {
             acpiEnabled.push_back(acpiEntries.at(i)->getName());
         } else {
-            if(acpiDisabled.size())
-                acpiDisabled += ",";
             acpiDisabled.push_back(acpiEntries.at(i)->getName());
         }
     }
@@ -159,13 +160,31 @@ void WakeupManager::handleApplyButton()
 }
 
 
+
+
 void WakeupManager::handleResetButton()
 {
-    qDebug() << "Reset pressed!: " << "Appying config";
+    qDebug() << "Reset pressed!";
+    
+    for (int i=0; i < acpiEntries.size(); i++) {
+        
+        // Entry is not configurable
+        if (!acpiEntries.at(i)->getCheckBox())
+            continue;
+        
+        acpiEntries.at(i)->resetUSBEntries();
+        acpiEntries.at(i)->getCheckBox()->setChecked(acpiEntries.at(i)->isEnabled());
+    }
+}
+
+
+
+void WakeupManager::handleTestButton()
+{
+    qDebug() << "Test pressed!: " << "Appying config";
     
     QVariantMap args;
-    args["entry"] = "XHC0";
-    
+
     qDebug() << "Creating action!";
     KAuth::Action applyConfigAction(QStringLiteral("org.kde.wakeupmanager.applyconfig"));
     applyConfigAction.setHelperId("org.kde.wakeupmanager");

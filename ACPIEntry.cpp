@@ -139,6 +139,18 @@ QWidget *ACPIEntry::getUSBNodes()
 }
 
 
+void ACPIEntry::resetUSBEntries()
+{
+    for (int i=0; i < usbEntries.size(); i++ ) {
+        qDebug() << "Resetting " << usbEntries.at(i)->getUSBDevNumber();
+        
+        usbEntries.at(i)->getCheckBox()->setChecked(usbEntries.at(i)->isEnabled());
+    }
+    
+}
+
+
+
 QStringList ACPIEntry::changedUSBEntries(bool enabled)
 {
     QStringList e;

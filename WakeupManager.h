@@ -24,11 +24,13 @@ class WakeupManager : public KXmlGuiWindow
     void                setupActions();
     QList<ACPIEntry *> acpiEntries;
     QPushButton         *resetButton;
+    QPushButton         *testButton;
     QPushButton         *applyButton;
     
     public Q_SLOTS:
         void handleApplyButton();
         void handleResetButton();
+        void handleTestButton();
 };
  
 #endif
