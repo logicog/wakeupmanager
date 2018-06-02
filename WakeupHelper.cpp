@@ -4,6 +4,7 @@
 #include <KConfigGroup>
 #include <QDebug>
 
+#define CONFIGFILE "/tmp/wakeupmanager.rc"
 
 using namespace KAuth;
 
@@ -11,7 +12,7 @@ class WakeupHelper : public QObject
 {
     Q_OBJECT
     public:
-        int configureDevices(QVariantMap &args);
+        int configureDevices(const QVariantMap &args);
     
     public Q_SLOTS:
         ActionReply updateconfig(const QVariantMap& args);
@@ -19,16 +20,13 @@ class WakeupHelper : public QObject
 };
 
 
-int WakeupHelper::configureDevices(QVariantMap &args)
+int WakeupHelper::configureDevices(const QVariantMap &args)
 {
-//     QStringList acpiEnabled = configPtr;
-//     QString acpiDisabled;
-//     QString usbEnabled;
-//     QString usbDisabled;
-//     
+    QStringList acpiEnabled(args["ACPIEnabled"].toStringList());
+    QStringList acpiDisabled(args["ACPIDisabled"].toStringList());
     
-    QStringList acpiEnabled(args["ACPIEnabled"]);
-    QStringList acpiDisabled(args["ACPIDisabled"]);
+    // First we read the acpi wakeup configuration under proc
+    // to see which settings are already set, in order to only toggle the others
     
     qWarning() << "Reading ACPI file";
     QFile file("/proc/acpi/wakeup");
@@ -62,16 +60,25 @@ int WakeupHelper::configureDevices(QVariantMap &args)
     
     file.close();
     
+    // Now we open the /proc/acpi/wakeup file again for writing only those entries that need
+    // to be toggled
+    
     qDebug() << "Updating /proc/acpi/wakeup";
     
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     
     for (int i = 0; i < acpiEnabled.size(); ++i) {
-        file.write(acpiEnabled.at(i).toLocal8Bit());
+        if(file.write(acpiEnabled.at(i).toLocal8Bit()) != acpiEnabled.at(i).size()) {
+            file.close();
+            return 2;
+        }
     }
-    
+
     for (int i = 0; i < acpiDisabled.size(); ++i) {
-        file.write(acpiDisabled.at(i).toLocal8Bit());
+        if(file.write(acpiDisabled.at(i).toLocal8Bit()) != acpiDisabled.at(i).size()) {
+            file.close();
+            return 2;
+        }
     }
     
     file.close();
@@ -85,7 +92,7 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
     ActionReply reply;
     
     
-    KSharedConfigPtr configPtr = KSharedConfig::openConfig("/tmp/wakeupmanager.rc",KConfig::SimpleConfig);
+    KSharedConfigPtr configPtr = KSharedConfig::openConfig(CONFIGFILE,KConfig::SimpleConfig);
     
     
     KConfigGroup group(configPtr->group("Wakeup"));
@@ -96,8 +103,18 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
     
     configPtr->sync();
     
-    configureDevices(configPtr);
-        
+    int ret = configureDevices(args);
+    switch(ret) {
+        case 1:
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not open acpi settings file: /proc/acpi/wakeup");
+            return reply;
+        case 2:
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not write to /proc/acpi/wakeup.");
+            return reply;
+    }
+     
     reply.addData("result", "OK");
 
     return reply;
