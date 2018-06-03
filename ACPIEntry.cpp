@@ -193,6 +193,8 @@ bool ACPIEntry::canWake()
     
     if(usbEntries.size())
         return true;
+    if ( entry.startsWith("LID") )
+        return true;
 
     return false;
 }

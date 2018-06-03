@@ -1,10 +1,14 @@
 sudo apt install cmake
 Follow instructions on
 https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Install_the_dependencies
-to install the dependencies
+to install the dependencies. On Ubuntu 18:04 the following appears to be sufficient
+sudo apt-get install libbz2-dev libxslt-dev libxml2-dev shared-mime-info oxygen-icon-theme libgif-dev libvlc-dev libvlccore-dev doxygen gperf bzr libxapian-dev fontforge libgcrypt20-dev libattr1-dev network-manager-dev libgtk-3-dev xsltproc xserver-xorg-input-synaptics-dev libpwquality-dev modemmanager-dev libxcb-keysyms1-dev libepoxy-dev libpolkit-agent-1-dev libnm-util-dev libnm-glib-dev libegl1-mesa-dev libxcb-xkb-dev libqt5x11extras5-dev libwww-perl libxml-parser-perl libjson-perl libboost-dev libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev libarchive-dev liblmdb-dev cmake git extra-cmake-modules "libkf5.*-dev"
+
+
 Within wakeupmanager do
 mkdir build
 cd build
 cmake ../CMakeLists.txt 
-make install
-export XDG_DATA_DIRS=$HOME/c++/wakeupmanager/run/share:$XDG_DATA_DIRS
+sudo make install
+Test with
+kcmshell5 kcm_wakeup
