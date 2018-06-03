@@ -1,5 +1,10 @@
+sudo apt install cmake
+Follow instructions on
+https://community.kde.org/Guidelines_and_HOWTOs/Build_from_source/Install_the_dependencies
+to install the dependencies
+Within wakeupmanager do
 mkdir build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=/home/birger/c++/wakeupmanager/run
+cmake ../CMakeLists.txt 
 make install
 export XDG_DATA_DIRS=$HOME/c++/wakeupmanager/run/share:$XDG_DATA_DIRS
