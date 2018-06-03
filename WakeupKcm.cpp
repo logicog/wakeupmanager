@@ -60,15 +60,8 @@ WakeupKcm::WakeupKcm(QWidget *parent, const QVariantList &args)
     
     testButton = new QPushButton("Test");
     firstLevelLayout->addWidget(testButton);
-    resetButton = new QPushButton("Reset");
-    firstLevelLayout->addWidget(resetButton);
-    applyButton = new QPushButton("Apply");
-    firstLevelLayout->addWidget(applyButton);
     
     firstLevelBox->setLayout(firstLevelLayout);
-    //parent->addWidget(firstLevelBox);
-  
-    setupActions();
 }
 
 
@@ -107,6 +100,7 @@ void WakeupKcm::readACPI()
             if (acpiEntry->canWake()) {
                 QCheckBox *checkBox = acpiEntry->createCheckBox();
                 connect(checkBox, SIGNAL (stateChanged(int )), acpiEntry, SLOT (handleStateChange(int )));
+                connect(checkBox, SIGNAL (stateChanged(int )), SLOT(changed()));
                 firstLevelLayout->addWidget(checkBox);
                 QWidget *w= acpiEntry->getUSBNodes();
                 if(w) {
@@ -124,15 +118,6 @@ void WakeupKcm::readACPI()
     
     qWarning() << "Closing ACPI file";
     file.close();
-}
-
-void WakeupKcm::setupActions()
-{
-    
-    connect(resetButton, SIGNAL (released()), this, SLOT (handleResetButton()));
-    connect(applyButton, SIGNAL (released()), this, SLOT (handleApplyButton()));
-    connect(testButton, SIGNAL (released()), this, SLOT (handleTestButton()));
-
 }
 
 
