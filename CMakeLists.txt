@@ -7,17 +7,11 @@ set(QT_MIN_VERSION "5.3.0")
 set(KF5_MIN_VERSION "5.2.0")
 
 find_package(ECM 1.0.0 REQUIRED NO_MODULE)
-set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(KDE_INSTALL_USE_QT_SYS_PATHS ON CACHE BOOL "Install mkspecs files, Plugins and Imports to the Qt 5 install dir" FORCE)
+#set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-include(KDEInstallDirs)
-include(KDECMakeSettings)
-include(KDECompilerSettings NO_POLICY_SCOPE)
-include(FeatureSummary)
-
-find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS 
-    Core    # QCommandLineParser, QStringLiteral
-    Widgets # QApplication 
-)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
 
 find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
     CoreAddons      # KAboutData
@@ -27,7 +21,12 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
     ConfigWidgets
 )
 
-feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
+include(FeatureSummary)
+include(KDEInstallDirs)
+include(KDECMakeSettings)
+include(KDECompilerSettings)
+
+feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 set(kcmwakeup_SRCS WakeupKcm.cpp ACPIEntry.cpp USBEntry.cpp)
 add_library(kcm_wakeup MODULE ${kcmwakeup_SRCS})
@@ -47,7 +46,8 @@ target_compile_definitions(kcm_wakeup PRIVATE -DPROJECT_VERSION="${PROJECT_VERSI
 
 target_link_libraries(wakeuphelper KF5::Auth KF5::ConfigCore)
 
-install(TARGETS kcm_wakeup ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS kcm_wakeup DESTINATION ${PLUGIN_INSTALL_DIR})
+#install(TARGETS kcm_wakeup DESTINATION ${CMAKE_INSTALL_PLUGINDIR})
 
 kauth_install_helper_files(wakeuphelper org.kde.wakeupmanager root)
 install(TARGETS wakeuphelper DESTINATION ${KAUTH_HELPER_INSTALL_DIR})

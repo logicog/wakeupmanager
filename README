@@ -12,3 +12,5 @@ cmake ../CMakeLists.txt
 sudo make install
 Test with
 kcmshell5 kcm_wakeup
+For integration into system configuration:
+sudo ln -s /usr/local/lib/x86_64-linux-gnu/plugins/kcm_wakeup.so /usr/lib/x86_64-linux-gnu/qt5/plugins/kcm_wakeup.so
