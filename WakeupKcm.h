@@ -21,13 +21,10 @@ class WakeupKcm : public KCModule
     void                readACPI();
     void                setupActions();
     QList<ACPIEntry *> acpiEntries;
-    QPushButton         *resetButton;
-    QPushButton         *testButton;
-    QPushButton         *applyButton;
+    void                load();
     
     public Q_SLOTS:
         void save();
-        void handleResetButton();
 };
  
 #endif

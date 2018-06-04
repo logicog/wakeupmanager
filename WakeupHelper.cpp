@@ -21,7 +21,7 @@
 #include <KConfigGroup>
 #include <QDebug>
 
-#define CONFIGFILE "/tmp/wakeupmanager.rc"
+#define CONFIGFILE "/etc/xdg/wakeupmanager.knsrc"
 
 using namespace KAuth;
 

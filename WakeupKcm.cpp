@@ -52,16 +52,14 @@ WakeupKcm::WakeupKcm(QWidget *parent, const QVariantList &args)
     setAboutData(aboutData);
     
     
-    firstLevelBox = new QGroupBox(i18n("ACPI Devices"), this);
+//    firstLevelBox = new QGroupBox(i18n("ACPI Devices"), this);
     firstLevelLayout = new QVBoxLayout();
 
     qDebug() << "Acting..";
     readACPI();
     
-    testButton = new QPushButton("Test");
-    firstLevelLayout->addWidget(testButton);
-    
-    firstLevelBox->setLayout(firstLevelLayout);
+//    firstLevelBox->setLayout(firstLevelLayout);
+     this->setLayout(firstLevelLayout);
 }
 
 
@@ -178,7 +176,7 @@ void WakeupKcm::save()
 }
 
 
-void WakeupKcm::handleResetButton()
+void WakeupKcm::load()
 {
     qDebug() << "Reset pressed!";
     
