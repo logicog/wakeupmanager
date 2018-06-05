@@ -100,7 +100,7 @@ void WakeupKcm::readACPI()
                 connect(checkBox, SIGNAL (stateChanged(int )), acpiEntry, SLOT (handleStateChange(int )));
                 connect(checkBox, SIGNAL (stateChanged(int )), SLOT(changed()));
                 firstLevelLayout->addWidget(checkBox);
-                QWidget *w= acpiEntry->getUSBNodes();
+                QWidget *w= acpiEntry->getUSBNodes(this);
                 if(w) {
                     if( !acpiEntry->isEnabled()) w->setEnabled(false);
                     firstLevelLayout->addWidget(w);

@@ -6,6 +6,8 @@
 #include <QStringList>
 #include "USBEntry.h"
 
+class KCModule;
+
 class ACPIEntry : public QObject {
     Q_OBJECT
 public:
@@ -16,7 +18,7 @@ public:
     bool            canWake();
     QCheckBox       *getCheckBox() { return checkBox; } ;
     QCheckBox       *createCheckBox();
-    QWidget         *getUSBNodes();
+    QWidget         *getUSBNodes(KCModule *);
     bool            isEnabled() { return enabled; };
     QString         getName() { return entry; }; 
     QStringList     changedUSBEntries(bool enabled);

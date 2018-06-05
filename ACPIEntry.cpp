@@ -22,6 +22,7 @@
 #include <QFile>
 #include <QDir>
 #include <QVBoxLayout>
+#include <KCModule>
 
 ACPIEntry::ACPIEntry(QString e, QString s, QString isEn, QString sys)
 : checkBox(NULL)
@@ -135,7 +136,8 @@ QCheckBox *ACPIEntry::createCheckBox()
     return checkBox;
 }
 
-QWidget *ACPIEntry::getUSBNodes()
+
+QWidget *ACPIEntry::getUSBNodes(KCModule *parent=NULL)
 {
     qDebug() << "gettingUSBNodes";
     
@@ -149,6 +151,10 @@ QWidget *ACPIEntry::getUSBNodes()
     for (int i=0; i < usbEntries.size(); i++ ) {
         qDebug() << "adding usb entry";
         QCheckBox *c = usbEntries.at(i)->getCheckBox();
+        if(parent) {
+            qDebug() << "Connecting to parent";
+            connect(c, SIGNAL (stateChanged(int )), parent, SLOT(changed()));
+        }
         w->layout()->addWidget(c);
     }
     w->layout()->setContentsMargins(20,9,9,9);
