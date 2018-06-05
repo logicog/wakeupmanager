@@ -32,6 +32,7 @@ private:
     bool                enabled;
     QString             sysfsNode;
     QString             devClass;
+    QString		trivialName;
     QList<USBEntry *>   usbEntries;
     QCheckBox           *checkBox;
     

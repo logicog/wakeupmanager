@@ -40,18 +40,26 @@ ACPIEntry::ACPIEntry(QString e, QString s, QString isEn, QString sys)
     
     if( sysfsNode.startsWith("pci:") ) {
         readPCIDeviceClass();
-        qDebug() << "ACPIEntry pci device class: " << devClass;
+        qDebug() << "ACPIEntry pci device class: " << devClass << " of type " << trivialName;
         if(devClass.startsWith("0x0c03")) {
-            devClass = "USB Hub";
+            trivialName = "USB Hub";
             readUSBEntries();
         }
     }
+    if(devClass.startsWith("0x02")) {
+        trivialName = "Network controller";
+    }
     if ( entry == "PS2K" )
-        devClass = "PS2 Keyboard";
+        trivialName = "PS2 Keyboard";
     if ( entry == "PS2M" )
-        devClass = "PS2 Mouse";
+        trivialName = "PS2 Mouse";
     if ( entry.startsWith("LID") )
-        devClass = "Laptop Lid";
+        trivialName = "Laptop Lid";
+    if ( entry.startsWith("PWRB") )
+        trivialName = "Power Button";
+    if ( entry.startsWith("SLPB") )
+        trivialName = "Sleep button";
+
 }
 
 
@@ -130,7 +138,7 @@ QCheckBox *ACPIEntry::createCheckBox()
         return checkBox;
     
     QString description("");
-    description += devClass + " (" + entry + ")";
+    description += trivialName + " (" + entry + ")";
     checkBox = new QCheckBox(description);
     checkBox -> setChecked(enabled);
     return checkBox;
@@ -199,7 +207,8 @@ bool ACPIEntry::canWake()
     
     if(usbEntries.size())
         return true;
-    if ( entry.startsWith("LID") )
+        
+    if (trivialName != "" ) // Device class is known
         return true;
 
     return false;
@@ -222,6 +231,6 @@ void ACPIEntry::handleStateChange(int state)
 void ACPIEntry::debug()
 {
     qDebug() << "ACPIEntry: " << entry << ", State " << sleepState << " " << enabled
-                    << " " << sysfsNode << "Device class" << devClass;
+                    << " " << sysfsNode << "Device class" << devClass << " Name: " << trivialName;
 }
 
