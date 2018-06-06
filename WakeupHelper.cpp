@@ -91,6 +91,7 @@ int WakeupHelper::configureDevices(const QVariantMap &args)
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     
     for (int i = 0; i < acpiEnabled.size(); ++i) {
+        qDebug() << "Enabling " << acpiEnabled.at(i);
         if(file.write(acpiEnabled.at(i).toLocal8Bit()) != acpiEnabled.at(i).size()) {
             file.close();
             return 2;
@@ -98,6 +99,7 @@ int WakeupHelper::configureDevices(const QVariantMap &args)
     }
 
     for (int i = 0; i < acpiDisabled.size(); ++i) {
+        qDebug() << "Disabling " << acpiDisabled.at(i);
         if(file.write(acpiDisabled.at(i).toLocal8Bit()) != acpiDisabled.at(i).size()) {
             file.close();
             return 2;
@@ -180,7 +182,7 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
     KConfigGroup group(configPtr->group("Wakeup"));
     for(auto e : vm.keys()) {
         qDebug() << e << "," << vm.value(e) << '\n';
-        group.writeEntry(e, vm.value(e));
+        group.writeXdgListEntry(e, vm.value(e).toStringList());
     }
     
     configPtr->sync();
@@ -227,6 +229,9 @@ QVariantMap WakeupHelper::readConfig()
     m["ACPIDisabled"] = acpiDisabled;
     m["USBEnabled"] = usbEnabled;
     m["USBDisabled"] = usbDisabled;
+    
+    qDebug() << "Config read E: " << acpiEnabled;
+    qDebug() << "Config read D: " << acpiDisabled;
     
  //   configPtr->close();
     
