@@ -197,7 +197,7 @@ void WakeupKcm::load()
 
 extern "C"
 {
-    Q_DECL_EXPORT void kcminit_wakeup() // should be KDEEXPORT??
+    Q_DECL_EXPORT void kcminit_wakeup() // should be KDE_EXPORT??
     {
         qDebug() << "Initializing kcm_wakeup";
     
