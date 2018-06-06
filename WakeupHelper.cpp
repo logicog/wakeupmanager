@@ -88,25 +88,29 @@ int WakeupHelper::configureDevices(const QVariantMap &args)
     
     qDebug() << "Updating /proc/acpi/wakeup";
     
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    
     
     for (int i = 0; i < acpiEnabled.size(); ++i) {
         qDebug() << "Enabling " << acpiEnabled.at(i);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
         if(file.write(acpiEnabled.at(i).toLocal8Bit()) != acpiEnabled.at(i).size()) {
             file.close();
             return 2;
         }
+        file.close();
     }
 
     for (int i = 0; i < acpiDisabled.size(); ++i) {
         qDebug() << "Disabling " << acpiDisabled.at(i);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
         if(file.write(acpiDisabled.at(i).toLocal8Bit()) != acpiDisabled.at(i).size()) {
             file.close();
             return 2;
         }
+        file.close();
     }
     
-    file.close();
+    
     
     // Now we set the entries for the USB devices
        
