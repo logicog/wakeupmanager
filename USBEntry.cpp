@@ -21,9 +21,11 @@
 #include <QTextStream>
 #include <QFile>
 
+#include <QVBoxLayout>
+#include <KCModule>
 
 USBEntry::USBEntry(QString sys)
-    : checkBox(NULL)
+    : checkBox(NULL), usbEntries(NULL)
 {
     sysfsNode = sys;
     devClass = readUSBDeviceInfo("bDeviceClass");
@@ -35,6 +37,14 @@ USBEntry::USBEntry(QString sys)
     else
         enabled = false;
     debug();
+}
+
+USBEntry::~USBEntry()
+{
+    if(usbEntries) {
+        qDeleteAll(usbEntries->begin(), usbEntries->end());
+        delete usbEntries;
+    }
 }
 
 
@@ -73,6 +83,12 @@ bool USBEntry::canWake()
     if(devClass == "03") // HID (Mouse, Keyboard)
         return true;
     
+    if(devClass == "09") // USB Hub
+        return true;
+    
+    if(devClass == "12") // USB-C Bridge
+        return true;
+    
     return false;
 }
 
@@ -93,12 +109,70 @@ QCheckBox *USBEntry::getCheckBox()
     if(devClass == "03")
         description += "HID device";
     
+    if(devClass == "09")
+        description += "USB Hub";
+    
+    if(devClass == "12")
+        description += "USB-C Bridge";
+    
     if(devClass == "00")
         description += product;
        
     checkBox = new QCheckBox(description);
     checkBox -> setChecked(enabled);
     return checkBox;
+}
+
+
+// Returns Checkboxes for USB sub-devices if a USB device is a USB hub
+QWidget *USBEntry::getUSBNodes(KCModule *parent=NULL)
+{
+    qDebug() << "USBEntry::gettingUSBNodes";
+    
+    if ( !usbEntries->size() )
+        return NULL;
+    
+    QWidget *w = new QWidget();
+    QVBoxLayout *l = new QVBoxLayout();
+    w->setLayout(l);
+    
+    for (int i=0; i < usbEntries->size(); i++ ) {
+        qDebug() << "adding usb entry";
+         QCheckBox *c = usbEntries->at(i)->getCheckBox();
+        if(parent) {
+            qDebug() << "Connecting to parent";
+            connect(c, SIGNAL (stateChanged(int )), parent, SLOT(changed()));
+        }
+        w->layout()->addWidget(c);
+    }
+    w->layout()->setContentsMargins(20,9,9,9);
+    return w;
+}
+
+
+// Called only if a USB device is a USB hub
+QStringList USBEntry::changedUSBEntries(bool enabled)
+{
+    QStringList e;
+ 
+    qDebug() << "USBEntry::changedUSBEntries";
+    if(!usbEntries)
+        return e;
+    
+    qDebug() << "USBEntry::changedUSBEntries found some";
+    
+    for (int i=0; i < usbEntries->size(); i++ ) {
+        if(usbEntries->at(i)->getCheckBox()->isChecked() == usbEntries->at(i)->isEnabled())
+            continue;
+
+        if(usbEntries->at(i)->getCheckBox()->isChecked() != enabled)
+            continue;
+
+        qDebug() << "Adding " << usbEntries->at(i)->getUSBDevNumber() << "as enabled: " << enabled;
+        e.push_back(usbEntries->at(i)->getUSBDevNumber());
+    }
+    
+    return e;
 }
 
 

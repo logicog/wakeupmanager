@@ -26,7 +26,8 @@ public:
 
 private:
     int                 readPCIDeviceClass();
-    int                 readUSBEntries();
+    int                 scanPCIUSBHub();
+    int                 readUSBBus(QString &node, QList<USBEntry *> &entries);
     QString             entry;
     int                 sleepState;
     bool                enabled;

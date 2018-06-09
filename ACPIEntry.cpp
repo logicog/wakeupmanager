@@ -43,7 +43,7 @@ ACPIEntry::ACPIEntry(QString e, QString s, QString isEn, QString sys)
         qDebug() << "ACPIEntry pci device class: " << devClass << " of type " << trivialName;
         if(devClass.startsWith("0x0c03")) {
             trivialName = "USB Hub";
-            readUSBEntries();
+            scanPCIUSBHub();
         }
     }
     if(devClass.startsWith("0x02")) {
@@ -92,12 +92,12 @@ int ACPIEntry::readPCIDeviceClass()
 }
 
 
-int ACPIEntry::readUSBEntries()
-{
-    qDebug() << "ACPIEntry: readUSBEntries";
+int ACPIEntry::scanPCIUSBHub()
+{ 
     QString node = QString("/sys/bus/pci/devices/");
     node.append(sysfsNode.mid(4));
     node.append("/");
+    qDebug() << "ACPIEntry: readUSBEntries: " << node;
     
     QDir dir(node);
     QStringList filters;
@@ -110,24 +110,39 @@ int ACPIEntry::readUSBEntries()
         busDir.append("/");
         busDir.append(fileInfo.fileName());
         qDebug() << "ACPIEntry: readUSBEntries " << busDir;
-        
-        // Now loop over devices on that USB busDir
-        QDir usbBusDir(busDir);
-        QStringList usbDevFilters;
-        usbDevFilters << "?-*";
-        usbBusDir.setNameFilters(usbDevFilters);
-        QFileInfoList usbDevList = usbBusDir.entryInfoList();
-        for (int j=0; j < usbDevList.size(); j++) {
-            QFileInfo usbFileInfo = usbDevList.at(j);
-            qDebug() << "Entry: " << usbFileInfo.absoluteFilePath();
-            USBEntry *usbEntry = new USBEntry(usbFileInfo.absoluteFilePath());
-            if(usbEntry->canWake())
-                usbEntries.push_back(usbEntry);
-            else
-                delete usbEntry;
-        }
-        
+        readUSBBus(busDir, usbEntries);
     }
+    return 0;
+}
+
+
+int ACPIEntry::readUSBBus(QString &busDir, QList<USBEntry *> &usbEntriesList)
+{
+    qDebug() << "readUSBBus: readUSBEntries: " << busDir;
+    
+    // Now loop over devices on that USB busDir
+    QDir usbBusDir(busDir);
+    QStringList usbDevFilters;
+    usbDevFilters << "?-*";
+    usbBusDir.setNameFilters(usbDevFilters);
+    QFileInfoList usbDevList = usbBusDir.entryInfoList();
+    for (int j=0; j < usbDevList.size(); j++) {
+        QFileInfo usbFileInfo = usbDevList.at(j);
+        qDebug() << "Entry: " << usbFileInfo.absoluteFilePath();
+        USBEntry *usbEntry = new USBEntry(usbFileInfo.absoluteFilePath());
+        if(usbEntry->isHub()) {
+            QString path = usbFileInfo.absoluteFilePath() + "/";
+            qDebug() << "DETECTED HUB, reading sub entries of " << path;
+            QList<USBEntry *> *subEntries = new QList<USBEntry *>;
+            readUSBBus(path, *subEntries);
+            usbEntry->setSubEntries(subEntries);
+        }
+        if(usbEntry->canWake())
+            usbEntriesList.push_back(usbEntry);
+        else
+            delete usbEntry;
+    }
+    
     return 0;
 }
 
@@ -164,6 +179,12 @@ QWidget *ACPIEntry::getUSBNodes(KCModule *parent=NULL)
             connect(c, SIGNAL (stateChanged(int )), parent, SLOT(changed()));
         }
         w->layout()->addWidget(c);
+        if(usbEntries.at(i)->isHub()) {
+            QWidget *boxes = usbEntries.at(i)->getUSBNodes(parent);
+            if(boxes) {
+                w->layout()->addWidget(boxes);
+            }
+        }
     }
     w->layout()->setContentsMargins(20,9,9,9);
     return w;
@@ -184,9 +205,17 @@ void ACPIEntry::resetUSBEntries()
 
 QStringList ACPIEntry::changedUSBEntries(bool enabled)
 {
+    qDebug() << "ACPIEntry::changedUSBEntries";
     QStringList e;
     
     for (int i=0; i < usbEntries.size(); i++ ) {
+        
+        if(usbEntries.at(i)->isHub()) {
+            qDebug() << "ACPIEntry::changedUSBEntries found a hub";
+            QStringList l = usbEntries.at(i)->changedUSBEntries(enabled);
+            e += l;
+        }
+        
         if(usbEntries.at(i)->getCheckBox()->isChecked() == usbEntries.at(i)->isEnabled())
             continue;
 
@@ -203,8 +232,6 @@ QStringList ACPIEntry::changedUSBEntries(bool enabled)
 
 bool ACPIEntry::canWake()
 {
-    // TODO: Ethernet controllers, Lids, power button and so on
-    
     if(usbEntries.size())
         return true;
         
