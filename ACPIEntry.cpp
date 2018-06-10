@@ -49,7 +49,7 @@ ACPIEntry::ACPIEntry(QString e, QString s, QString isEn, QString sys)
     if(devClass.startsWith("0x02")) {
         trivialName = "Network controller";  // Unspecified network controller
     }
-    if(devClass.startsWith("0x0280")) {
+    if(devClass.startsWith("0x0200")) {
         trivialName = "Ethernet controller";
     }
     if ( entry == "PS2K" )
