@@ -55,4 +55,30 @@ kauth_install_actions(org.kde.wakeupmanager wakeupmanager.actions)
 
 install(FILES kcm_wakeup.desktop DESTINATION ${CMAKE_INSTALL_KSERVICES5DIR})
 
+if(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+include(InstallRequiredSystemLibraries)
+ 
+set(CPACK_SET_DESTDIR "on")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/tmp")
+set(CPACK_GENERATOR "DEB")
+ 
+set(CPACK_PACKAGE_DESCRIPTION "KCM configuration module for wakeup from sleep")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Module for the KDE system setting allowing you to configure which devices will wake your computer up from Sleep or Hibernation")
+set(CPACK_PACKAGE_VENDOR "bkoblitz")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "bkoblitz")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
 
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${PROJECT_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${PROJECT_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
+
+set(CPACK_DEBIAN_PACKAGE_DEPENDS " plasma-desktop ")
+ 
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_SECTION "kde")
+set(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+ 
+set(CPACK_COMPONENTS_ALL Libraries ApplicationData)
+include(CPack)
+ 
+endif(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
