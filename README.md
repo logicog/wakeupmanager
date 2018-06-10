@@ -3,6 +3,8 @@
 This module for the KDE system configuration allows to set which devices (e.g. Mouse, Keyboard, Ethernet) wake the computer from sleep or hibernate when activated. It can also be used to prevent some devices which randomly wake up the computer from doing so.
 The module shows a hierarchy of ACPI devices and for all USB hubs the dependent devices. Checking a box enables wakeup by that device. Note that for a USB device to be able to wake the computer from sleep requires that the USB hub the device is on also stays awake when sleeping (box must be checked).
 
+![Screenshot](doc/Screenshot_wakeup_configuration.png)
+
 ### Building
 Install the following build dependencies
 ```
