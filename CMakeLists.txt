@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 project (wakeupkcm)
-set(PROJECT_VERSION "0.8")
+set(PROJECT_VERSION "0.9")
 
 set(QT_MIN_VERSION "5.3.0")
 set(KF5_MIN_VERSION "5.2.0")
