@@ -20,6 +20,7 @@
 #include <KSharedConfig>
 #include <KConfigGroup>
 #include <QDebug>
+#include <QDir>
 
 #define CONFIGFILE "/etc/xdg/wakeupmanager.knsrc"
 
@@ -30,7 +31,10 @@ class WakeupHelper : public QObject
     Q_OBJECT
     public:
         int configureDevices(const QVariantMap &args);
-    
+        void getUSBDeviceNodes(QVariantMap &config);
+        QString findUSBDevice(const QString &id);
+        QString readUSBDeviceInfo(QString &node);
+
     private:
         QVariantMap readConfig();
         
@@ -147,6 +151,94 @@ int WakeupHelper::configureDevices(const QVariantMap &args)
     return 0;
 }
 
+QString  WakeupHelper::readUSBDeviceInfo(QString &node)
+{
+    QFile file(node);
+    
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    
+    if ( !file.isOpen() ){
+        qWarning() << "Unable to open file: " << node << file.errorString();
+        return "";
+    }
+    
+    qWarning() << "USB device file open";
+    QTextStream in(&file);
+    QString r = in.readLine();
+    file.close();
+    
+    return r;
+}
+
+QString WakeupHelper::findUSBDevice(const QString &id)
+{
+    QString node = QString("/sys/bus/usb/devices/");
+    qDebug() << "ACPIEntry: findUSBDevice: " << node << "  Searching" << id;
+    
+    QDir dir(node);
+    QStringList filters;
+    filters << "*-*";
+    dir.setNameFilters(filters);
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); i++) {
+        QFileInfo fileInfo = list.at(i);
+        QString idFileName(node);
+        idFileName.append(fileInfo.fileName());
+        idFileName.append("/idProduct");
+        qDebug() << "WakeupHelper::findUSBDevice " << idFileName;
+        QString idProduct = readUSBDeviceInfo(idFileName);
+        if(idProduct == "")
+            continue;
+        
+        idFileName = node;
+        idFileName.append(fileInfo.fileName());
+        idFileName.append("/idVendor");
+        qDebug() << "WakeupHelper::findUSBDevice " << idFileName;
+        QString idVendor = readUSBDeviceInfo(idFileName);
+        
+        if(id == idVendor +":"+ idProduct) {
+            node += fileInfo.fileName() + "/";
+            qDebug() << "WakeupHelper::findUSBDevice Found: " << id << ", node: " << node;
+            return node;
+        }
+    }
+    qDebug() << "WakeupHelper::findUSBDevice Found: " << id << " NOT FOUND";
+    return "";
+}
+
+
+void WakeupHelper::getUSBDeviceNodes(QVariantMap &config)
+{
+    
+    qDebug() << "getUSBDeviceNodes";
+    QStringList usbEnabledIDs(config["USBEnabled"].toStringList());
+    QStringList usbDisabledIDs(config["USBDisabled"].toStringList());
+    
+    QStringList usbEnabledNodes;
+    QStringList usbDisabledNodes;
+    
+    for (int i = 0; i < usbEnabledIDs.size(); ++i) {
+        qDebug() << "getUSBDeviceNodes, enabled: " << usbEnabledIDs.at(i);
+        QString node = findUSBDevice(usbEnabledIDs.at(i));
+        if(node!= "")
+            usbEnabledNodes.push_back(node);
+    }
+     
+    for (int i = 0; i < usbDisabledIDs.size(); ++i) {
+        qDebug() << "getUSBDeviceNodes, disabled: " << usbDisabledIDs.at(i);
+        QString node = findUSBDevice(usbDisabledIDs.at(i));
+        if(node!= "")
+            usbDisabledNodes.push_back(node);
+    }
+    
+    // TODO
+    // config.erase("USBEnabled");
+    // config.erase("USBDisabled");
+    
+    config["USBEnabled"] = usbEnabledNodes;
+    config["USBDisabled"] = usbDisabledNodes;
+}
+
 
 ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
 {
@@ -178,19 +270,18 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
                 qDebug() << "Found: "<< e << ": " << s;
             }
         }
-    }     
+    }
     
     KSharedConfigPtr configPtr = KSharedConfig::openConfig(CONFIGFILE,KConfig::SimpleConfig);
     
-    
     KConfigGroup group(configPtr->group("Wakeup"));
-    for(auto e : vm.keys()) {
+    for(auto e : vm.keys()) { 
         qDebug() << e << "," << vm.value(e) << '\n';
         group.writeXdgListEntry(e, vm.value(e).toStringList());
     }
-    
+     
     configPtr->sync();
-    
+    getUSBDeviceNodes(vm);
     int ret = configureDevices(vm);
     switch(ret) {
         case 1:
@@ -250,7 +341,7 @@ ActionReply WakeupHelper::applyconfig(const QVariantMap& args)
     ActionReply reply;
     
     QVariantMap config = readConfig();
-    
+    getUSBDeviceNodes(config);
     int ret = configureDevices(config);
     switch(ret) {
         case 1:

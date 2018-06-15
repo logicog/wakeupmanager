@@ -31,6 +31,8 @@ USBEntry::USBEntry(QString sys)
     devClass = readUSBDeviceInfo("bDeviceClass");
     product = readUSBDeviceInfo("product");
     manufacturer = readUSBDeviceInfo("manufacturer");
+    devID = readUSBDeviceInfo("idVendor");
+    devID += ":" + readUSBDeviceInfo("idProduct");
     QString e = readUSBDeviceInfo("power/wakeup");
     if(e == "enabled")
         enabled = true;
@@ -117,7 +119,9 @@ QCheckBox *USBEntry::getCheckBox()
     
     if(devClass == "00")
         description += product;
-       
+    
+    description += " (" + devID + ")";
+    
     checkBox = new QCheckBox(description);
     checkBox -> setChecked(enabled);
     return checkBox;

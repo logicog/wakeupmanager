@@ -22,7 +22,7 @@ public:
     bool        isHub() { return devClass == "09"? true : false; };
     QWidget     *getUSBNodes(KCModule *parent);
     QStringList changedUSBEntries(bool enabled);
-    
+    QString     getUSBDevID() { return devID; }
 private:
     QString     readUSBDeviceInfo(QString info);
     QString     product;
@@ -31,6 +31,7 @@ private:
     QString     devClass;
     QCheckBox   *checkBox;
     QString     devNumber;
+    QString     devID;
     bool        enabled;
     QList<USBEntry *>   *usbEntries;
 };

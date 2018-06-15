@@ -225,8 +225,8 @@ QStringList ACPIEntry::changedUSBEntries(bool enabled)
         if(usbEntries.at(i)->getCheckBox()->isChecked() != enabled)
             continue;
 
-        qDebug() << "Adding " << usbEntries.at(i)->getUSBDevNumber() << "as enabled: " << enabled;
-        e.push_back(usbEntries.at(i)->getUSBDevNumber());
+        qDebug() << "Adding " << usbEntries.at(i)->getUSBDevID() << "as enabled: " << enabled;
+        e.push_back(usbEntries.at(i)->getUSBDevID());
     }
     
     return e;
