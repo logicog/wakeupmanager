@@ -55,6 +55,12 @@ kauth_install_actions(org.kde.wakeupmanager wakeupmanager.actions)
 
 install(FILES kcm_wakeup.desktop DESTINATION ${CMAKE_INSTALL_KSERVICES5DIR})
 
+install(FILES wakeupmanager.sh DESTINATION /lib/systemd/system-sleep
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                    GROUP_EXECUTE GROUP_READ WORLD_READ WORLD_EXECUTE)
+
+
+
 if(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 include(InstallRequiredSystemLibraries)
  
