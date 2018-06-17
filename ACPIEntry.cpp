@@ -22,6 +22,7 @@
 #include <QFile>
 #include <QDir>
 #include <QVBoxLayout>
+#include <QCheckBox>
 #include <KCModule>
 
 ACPIEntry::ACPIEntry(QString e, QString s, QString isEn, QString sys)

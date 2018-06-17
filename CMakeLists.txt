@@ -31,7 +31,9 @@ feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 set(kcmwakeup_SRCS WakeupKcm.cpp ACPIEntry.cpp USBEntry.cpp)
 add_library(kcm_wakeup MODULE ${kcmwakeup_SRCS})
 
-add_executable(wakeuphelper WakeupHelper.cpp)
+add_executable(wakeuphelper WakeupHelper.cpp WakeupConfig.cpp)
+
+add_executable(configurewakeup configurewakeup.cpp WakeupConfig.cpp)
 
 target_link_libraries(kcm_wakeup
     Qt5::Widgets
@@ -45,12 +47,16 @@ target_link_libraries(kcm_wakeup
 target_compile_definitions(kcm_wakeup PRIVATE -DPROJECT_VERSION="${PROJECT_VERSION}")
 
 target_link_libraries(wakeuphelper KF5::Auth KF5::ConfigCore)
+target_link_libraries(configurewakeup KF5::ConfigCore)
 
 install(TARGETS kcm_wakeup DESTINATION ${PLUGIN_INSTALL_DIR})
 #install(TARGETS kcm_wakeup DESTINATION ${CMAKE_INSTALL_PLUGINDIR})
 
 kauth_install_helper_files(wakeuphelper org.kde.wakeupmanager root)
 install(TARGETS wakeuphelper DESTINATION ${KAUTH_HELPER_INSTALL_DIR})
+
+install(TARGETS configurewakeup ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+
 kauth_install_actions(org.kde.wakeupmanager wakeupmanager.actions)
 
 install(FILES kcm_wakeup.desktop DESTINATION ${CMAKE_INSTALL_KSERVICES5DIR})

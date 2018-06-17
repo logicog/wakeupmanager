@@ -2,11 +2,11 @@
 #define ACPIENTRY_H
  
 #include <QString>
-#include <QCheckBox>
 #include <QStringList>
 #include "USBEntry.h"
 
 class KCModule;
+class QCkeckBox;
 
 class ACPIEntry : public QObject {
     Q_OBJECT

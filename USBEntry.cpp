@@ -22,6 +22,7 @@
 #include <QFile>
 
 #include <QVBoxLayout>
+#include <QCheckBox>
 #include <KCModule>
 
 USBEntry::USBEntry(QString sys)

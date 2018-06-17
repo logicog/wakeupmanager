@@ -4,9 +4,9 @@
 #include <QString>
 #include <QStringList>
 #include <QObject>
-#include <QCheckBox>
 
 class KCModule;
+class QCheckBox;
 
 class USBEntry : public QObject {
 
