@@ -30,38 +30,39 @@ ACPIEntry::ACPIEntry(QString e, QString s, QString isEn, QString sys)
 {
     entry = e;
     sleepState = s.toLong();
-    if( (sleepState <3) || (sleepState>4) )
+    if( (sleepState < 3) || (sleepState > 4) )
         sleepState = 0;
     if(isEn == "enabled" ) {
         enabled = true;
     } else {
         enabled = false;
     }
-    sysfsNode =sys;
-    
-    if( sysfsNode.startsWith("pci:") ) {
+    sysfsNode = sys;
+
+    if (sysfsNode.startsWith("pci:")) {
         readPCIDeviceClass();
         qDebug() << "ACPIEntry pci device class: " << devClass << " of type " << trivialName;
         if(devClass.startsWith("0x0c03")) {
             trivialName = "USB Hub";
             scanPCIUSBHub();
         }
+        readPCINetDevice();
     }
-    if(devClass.startsWith("0x02")) {
+    if (devClass.startsWith("0x02")) {
         trivialName = "Network controller";  // Unspecified network controller
     }
-    if(devClass.startsWith("0x0200")) {
+    if (devClass.startsWith("0x0200")) {
         trivialName = "Ethernet controller";
     }
-    if ( entry == "PS2K" )
+    if (entry == "PS2K")
         trivialName = "PS2 Keyboard";
-    if ( entry == "PS2M" )
+    if (entry == "PS2M")
         trivialName = "PS2 Mouse";
-    if ( entry.startsWith("LID") )
+    if (entry.startsWith("LID"))
         trivialName = "Laptop Lid";
-    if ( entry.startsWith("PWRB") )
+    if (entry.startsWith("PWRB"))
         trivialName = "Power Button";
-    if ( entry.startsWith("SLPB") )
+    if (entry.startsWith("SLPB"))
         trivialName = "Sleep button";
 
 }
@@ -79,30 +80,50 @@ int ACPIEntry::readPCIDeviceClass()
     node.append(sysfsNode.mid(4));
     node.append("/class");
     QFile file(node);
-    
+
     file.open(QIODevice::ReadOnly | QIODevice::Text);
-    
-    if ( !file.isOpen() ){
+
+    if (!file.isOpen()) {
         qWarning() << "Unable to open file: " << file.errorString();
         return -1;
     }
-    
+
     qWarning() << "PCI device file open";
     QTextStream in(&file);
     devClass = in.readLine();
     file.close();
-    
+
+    return 0;
+}
+
+int ACPIEntry::readPCINetDevice()
+{
+    QString node = QString("/sys/bus/pci/devices/");
+    node.append(sysfsNode.mid(4));
+    node.append("/net/");
+    qDebug() << __func__ << ": " << node;
+
+    QDir dir(node);
+
+    QFileInfoList list = dir.entryInfoList();
+    for (int i = 0; i < list.size(); i++) {
+        QFileInfo fileInfo = list.at(i);
+	if (fileInfo.fileName() != "." && fileInfo.fileName() != "..")
+	    netDevice = fileInfo.fileName();
+        qDebug() << __func__ << ": " << netDevice;
+    }
+
     return 0;
 }
 
 
 int ACPIEntry::scanPCIUSBHub()
-{ 
+{
     QString node = QString("/sys/bus/pci/devices/");
     node.append(sysfsNode.mid(4));
     node.append("/");
     qDebug() << "ACPIEntry: readUSBEntries: " << node;
-    
+
     QDir dir(node);
     QStringList filters;
     filters << "usb?";
@@ -157,7 +178,10 @@ QCheckBox *ACPIEntry::createCheckBox()
         return checkBox;
     
     QString description("");
-    description += trivialName + " (" + entry + ")";
+    description += trivialName;
+    if (netDevice.size())
+	description += " " + netDevice;
+    description += + " (" + entry + ")";
     checkBox = new QCheckBox(description);
     checkBox -> setChecked(enabled);
     return checkBox;
@@ -199,10 +223,8 @@ void ACPIEntry::resetUSBEntries()
 {
     for (int i=0; i < usbEntries.size(); i++ ) {
         qDebug() << "Resetting " << usbEntries.at(i)->getUSBDevNumber();
-        
         usbEntries.at(i)->getCheckBox()->setChecked(usbEntries.at(i)->isEnabled());
     }
-    
 }
 
 
@@ -211,15 +233,15 @@ QStringList ACPIEntry::changedUSBEntries(bool enabled)
 {
     qDebug() << "ACPIEntry::changedUSBEntries";
     QStringList e;
-    
+
     for (int i=0; i < usbEntries.size(); i++ ) {
-        
+
         if(usbEntries.at(i)->isHub()) {
             qDebug() << "ACPIEntry::changedUSBEntries found a hub";
             QStringList l = usbEntries.at(i)->changedUSBEntries(enabled);
             e += l;
         }
-        
+
         if(usbEntries.at(i)->getCheckBox()->isChecked() == usbEntries.at(i)->isEnabled())
             continue;
 
@@ -229,7 +251,7 @@ QStringList ACPIEntry::changedUSBEntries(bool enabled)
         qDebug() << "Adding " << usbEntries.at(i)->getUSBDevID() << "as enabled: " << enabled;
         e.push_back(usbEntries.at(i)->getUSBDevID());
     }
-    
+
     return e;
 }
 
@@ -238,7 +260,7 @@ bool ACPIEntry::canWake()
 {
     if(usbEntries.size())
         return true;
-        
+
     if (trivialName != "" ) // Device class is known
         return true;
 

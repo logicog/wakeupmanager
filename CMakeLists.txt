@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 project (wakeupkcm)
-set(PROJECT_VERSION "0.9")
+set(PROJECT_VERSION "1.0")
 
 set(QT_MIN_VERSION "5.3.0")
 set(KF5_MIN_VERSION "5.2.0")
@@ -21,10 +21,10 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
     ConfigWidgets
 )
 
-include(FeatureSummary)
 include(KDEInstallDirs)
 include(KDECMakeSettings)
-include(KDECompilerSettings)
+include(KDECompilerSettings NO_POLICY_SCOPE)
+include(FeatureSummary)
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -76,8 +76,8 @@ set(CPACK_GENERATOR "DEB")
  
 set(CPACK_PACKAGE_DESCRIPTION "KCM configuration module for wakeup from sleep")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Module for the KDE system setting allowing you to configure which devices will wake your computer up from Sleep or Hibernation")
-set(CPACK_PACKAGE_VENDOR "bkoblitz")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "bkoblitz")
+set(CPACK_PACKAGE_VENDOR "Birger Koblitz")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Birger Koblitz")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 

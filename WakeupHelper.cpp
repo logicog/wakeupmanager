@@ -48,8 +48,8 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
     QVariantMap old = WakeupConfig::readConfig();
 
     for(auto e: old.keys() ) {
-        for(int i=0; i<old.value(e).toStringList().size(); i++)  {
-            QString s=old.value(e).toStringList().at(i);
+        for(int i = 0; i < old.value(e).toStringList().size(); i++)  {
+            QString s = old.value(e).toStringList().at(i);
             qDebug() << "Searching for origial entry" << e << ": " << s;
             bool found = false;
             for(auto en: vm.keys()) {
@@ -76,7 +76,7 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
         qDebug() << e << "," << vm.value(e) << '\n';
         group.writeXdgListEntry(e, vm.value(e).toStringList());
     }
-     
+
     configPtr->sync();
     WakeupConfig::getUSBDeviceNodes(vm);
     int ret = WakeupConfig::configureDevices(vm);
@@ -98,7 +98,13 @@ ActionReply WakeupHelper::updateconfig(const QVariantMap &args)
             reply.setErrorDescription("Could not open usb sysfs file");
             return reply;
     }
-     
+
+    if (WakeupConfig::enableWOL(vm)) {
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not enable Wake-On-Lan");
+            return reply;
+    }
+
     reply.addData("result", "OK");
 
     return reply;
@@ -135,7 +141,13 @@ ActionReply WakeupHelper::applyconfig(const QVariantMap& args)
             reply.setErrorDescription("Could not open usb sysfs file");
             return reply;
     }
-     
+
+    if (WakeupConfig::enableWOL(config)) {
+            reply = ActionReply::HelperErrorReply();
+            reply.setErrorDescription("Could not enable Wake-On-Lan");
+            return reply;
+    }
+
     reply.addData("result", "OK");
 
     return reply;

@@ -40,8 +40,6 @@ K_EXPORT_PLUGIN(WakeupKcmFactory("kcm_wakeup" /* kcm name */, "kcm_wakeup" /* ca
 WakeupKcm::WakeupKcm(QWidget *parent, const QVariantList &args) 
     : KCModule(parent, args)
 {
-    
-    
     KAboutData* aboutData = new KAboutData("kcmwakeup", i18n("Wakeup KDE Config"), PROJECT_VERSION);
 
     aboutData->setShortDescription(i18n("Configure Wakeup from Sleep/Hibernate"));
@@ -133,9 +131,9 @@ void WakeupKcm::save()
     QStringList acpiDisabled;
     QStringList usbEnabled;
     QStringList usbDisabled;
+    QStringList wolEnabled;
 
     for (int i=0; i < acpiEntries.size(); i++) {
-        
         // Entry is not configurable
         if (!acpiEntries.at(i)->getCheckBox())
             continue;
@@ -144,11 +142,13 @@ void WakeupKcm::save()
         usbDisabled += acpiEntries.at(i)->changedUSBEntries(false);
         
         // Entry did not change
-        if(acpiEntries.at(i)->getCheckBox()->isChecked() == acpiEntries.at(i)->isEnabled())
-            continue;
+//        if(acpiEntries.at(i)->getCheckBox()->isChecked() == acpiEntries.at(i)->isEnabled())
+//            continue;
         
         if(acpiEntries.at(i)->getCheckBox()->isChecked() ) {
             acpiEnabled.push_back(acpiEntries.at(i)->getName());
+	    if (acpiEntries.at(i)->getNet().size())
+		wolEnabled.push_back(acpiEntries.at(i)->getNet());
         } else {
             acpiDisabled.push_back(acpiEntries.at(i)->getName());
         }
@@ -163,7 +163,8 @@ void WakeupKcm::save()
     args["ACPIDisabled"] = acpiDisabled;
     args["USBEnabled"] = usbEnabled;
     args["USBDisabled"] = usbDisabled;
-    
+    args["WOLEnabled"] = wolEnabled;
+
     qDebug() << "Creating action!";
     KAuth::Action updateConfigAction(QStringLiteral("org.kde.wakeupmanager.updateconfig"));
     updateConfigAction.setHelperId("org.kde.wakeupmanager");

@@ -20,6 +20,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QDir>
+#include <QProcess>
 #include <KSharedConfig>
 #include <KConfigGroup>
 
@@ -37,19 +38,38 @@ QVariantMap WakeupConfig::readConfig()
     QStringList acpiDisabled = group.readXdgListEntry("ACPIDisabled");
     QStringList usbEnabled = group.readXdgListEntry("USBEnabled");
     QStringList usbDisabled = group.readXdgListEntry("USBDisabled");
+    QStringList wolEnabled = group.readXdgListEntry("WOLEnabled");
     
     QVariantMap m;
     m["ACPIEnabled"] = acpiEnabled;
     m["ACPIDisabled"] = acpiDisabled;
     m["USBEnabled"] = usbEnabled;
     m["USBDisabled"] = usbDisabled;
+    m["WOLEnabled"] = wolEnabled;
     
-    qDebug() << "Config read E: " << acpiEnabled;
-    qDebug() << "Config read D: " << acpiDisabled;
+    qDebug() << "Config read ACPI Enabled: " << acpiEnabled;
+    qDebug() << "Config read ACPI Disabled: " << acpiDisabled;
+    qDebug() << "Config read WOL Enabled: " << wolEnabled;
     
  //   configPtr->close();
     
     return m;
+}
+
+
+int WakeupConfig::enableWOL(const QVariantMap &args)
+{
+    QStringList wolEnabled(args["WOLEnabled"].toStringList());
+
+    for (int i = 0; i < wolEnabled.size(); ++i) {
+        qDebug() << "WOL Enabling " << wolEnabled.at(i);
+	QString ethtool = "/usr/sbin/ethtool";
+	QStringList args;
+	args << "-s" << wolEnabled.at(i) << "wol" << "g";
+	QProcess::execute(ethtool, args);
+    }
+
+    return 0;
 }
 
 
@@ -100,9 +120,7 @@ int WakeupConfig::configureDevices(const QVariantMap &args)
     // to be toggled
     
     qDebug() << "Updating /proc/acpi/wakeup";
-    
-    
-    
+
     for (int i = 0; i < acpiEnabled.size(); ++i) {
         qDebug() << "Enabling " << acpiEnabled.at(i);
         file.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -122,9 +140,8 @@ int WakeupConfig::configureDevices(const QVariantMap &args)
         }
         file.close();
     }
-    
-    
-    
+
+
     // Now we set the entries for the USB devices
        
     for (int i = 0; i < usbEnabled.size(); ++i) {

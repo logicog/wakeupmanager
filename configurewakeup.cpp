@@ -11,6 +11,10 @@ int main()
     QVariantMap config = WakeupConfig::readConfig();
     WakeupConfig::getUSBDeviceNodes(config);
     int ret = WakeupConfig::configureDevices(config);
-    
+    if (ret)
+	return ret;
+
+    ret = WakeupConfig::enableWOL(config);
+
     return ret;
 }

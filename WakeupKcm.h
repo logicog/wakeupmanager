@@ -9,7 +9,7 @@
 
 class WakeupKcm : public KCModule
 {    
-     Q_OBJECT
+  Q_OBJECT
     
   public:
     explicit WakeupKcm(QWidget *parent, const QVariantList &args);
@@ -20,11 +20,11 @@ class WakeupKcm : public KCModule
     QVBoxLayout         *firstLevelLayout;
     void                readACPI();
     void                setupActions();
-    QList<ACPIEntry *> acpiEntries;
-    void                load();
+    QList<ACPIEntry *>	acpiEntries;
+    void                load() override;
     
-    public Q_SLOTS:
-        void save();
+  public Q_SLOTS:
+    void		save() override;
 };
  
 #endif
